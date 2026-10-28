@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#10202b">
+<meta name="description" content="Frontière des Hunters — prototype d’action-aventure 3D jouable au tactile.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+
+<title>Frontière des Hunters — 3D améliorée (compatibilité)</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101b24;color:#f4f7ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}canvas{display:block}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#152b39,#08121b);z-index:20;text-align:center;padding:24px}
+.loadcard{max-width:440px}.eyebrow{font-size:10px;letter-spacing:.24em;color:#8eeaff;font-weight:900}.loadcard h1{font-size:clamp(28px,7vw,46px);line-height:1.02;margin:12px 0}.loadcard p{color:#c5d3df;font-size:13px;line-height:1.6}.loadbar{height:5px;background:#263f4d;border-radius:9px;overflow:hidden;margin:18px 0}.loadbar span{display:block;height:100%;width:30%;background:#8eeaff;animation:load 1.4s infinite alternate}@keyframes load{to{width:90%}}
+#overlay{position:fixed;inset:0;pointer-events:none;z-index:5}
+.panel{background:linear-gradient(135deg,#071522d9,#12293bd1);border:1px solid #c4e9ff3d;border-radius:12px;box-shadow:0 8px 24px #0003;backdrop-filter:blur(8px)}
+#logo{position:absolute;left:14px;top:14px;padding:10px 13px}#logo .eyebrow{font-size:9px}#logo b{display:block;font-size:17px;letter-spacing:.04em}#logo small{color:#b5c9d9;font-size:10px}
+#stats{position:absolute;right:14px;top:14px;width:170px;padding:10px 12px}.tiny{font-size:9px;color:#b8cddd;letter-spacing:.12em;text-transform:uppercase}.bar{height:7px;background:#243849;border-radius:8px;overflow:hidden;margin:5px 0 8px}.bar span{display:block;height:100%;width:100%;background:linear-gradient(90deg,#42d6b0,#9af3ca)}#xp{background:linear-gradient(90deg,#7f9cff,#c8a3ff)}
+#quest{position:absolute;left:14px;top:116px;padding:11px 13px;width:220px}#quest b{font-size:11px;color:#ffe0a0}#quest p{font-size:11px;color:#d4e3ef;line-height:1.45;margin:6px 0 0}
+#hero{position:absolute;left:14px;bottom:16px;padding:9px 12px;min-width:145px}#hero b{display:block;font-size:16px}#hero small{font-size:10px;color:#b5d3e4}
+#hint{position:absolute;right:14px;bottom:14px;padding:9px 12px;font-size:10px;line-height:1.6;color:#d9e7f2}
+#toast{position:absolute;top:23%;left:50%;transform:translateX(-50%);background:#071522e8;border:1px solid #9beeff66;border-radius:20px;padding:9px 15px;font-size:12px;opacity:0;transition:opacity .2s;white-space:nowrap;max-width:88vw;overflow:hidden}
+#touch{display:none;position:fixed;inset:0;z-index:8;pointer-events:none}
+#joy{position:absolute;left:18px;bottom:24px;width:128px;height:128px;border-radius:50%;border:2px solid #d7f4ff66;background:#0c1e2a66;pointer-events:auto;touch-action:none}
+#knob{position:absolute;left:34px;top:34px;width:56px;height:56px;border-radius:50%;border:2px solid #e0f9ff;background:#85dfff55;box-shadow:0 0 22px #64cfff33}
+#actions{position:absolute;right:15px;bottom:20px;display:grid;grid-template-columns:repeat(2,62px);gap:9px;pointer-events:auto}
+.act{width:62px;height:62px;border-radius:50%;border:1px solid #c4edff88;background:#071725c9;color:#f4faff;font-size:10px;font-weight:900;touch-action:none;box-shadow:0 5px 18px #0005}
+.act:active{background:#28647b}
+#cameraHint{position:absolute;right:16px;bottom:180px;color:#e4f6ffb8;font-size:9px;text-align:center;max-width:135px}
+#start{position:fixed;inset:0;z-index:10;background:radial-gradient(ellipse at 50% 38%,#496f80cc,#07121cf5 72%);display:flex;align-items:center;justify-content:center;padding:18px}
+.startcard{width:min(560px,100%);padding:24px;border:1px solid #a7e9ff50;border-radius:20px;background:#081725ed;box-shadow:0 20px 80px #0008}
+.startcard h2{font-size:clamp(28px,7vw,43px);line-height:1.02;margin:10px 0}.startcard p{font-size:12px;line-height:1.55;color:#c1d5e5}
+.picks{display:flex;gap:8px;margin:16px 0}.pick{flex:1;background:#132a3a;color:#fff;border:1px solid #4e7084;border-radius:10px;padding:12px 8px;text-align:left}.pick.active{border-color:#92edff;background:#1b4050}.pick strong{display:block;font-size:12px}.pick small{display:block;font-size:10px;color:#bed0dd;margin-top:4px}
+#go{width:100%;border:0;border-radius:10px;padding:14px;background:linear-gradient(90deg,#72e5ed,#9ebcff);font-weight:900;color:#071522;font-size:13px}
+.disclaimer{font-size:10px!important;color:#829eaf!important}
+@media(hover:none),(max-width:850px){#touch{display:block}#hint{display:none}#quest{top:100px;width:185px}#stats{width:145px;top:12px;right:10px}#logo{top:12px;left:10px}#logo b{font-size:14px}#hero{bottom:12px;left:10px}#cameraHint{display:block}}
+@media(min-width:851px){#cameraHint{display:none}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="loadcard"><div class="eyebrow">PROTOYPE 3D · CAMÉRA À LA TROISIÈME PERSONNE</div><h1>FRONTIÈRE<br>DES HUNTERS</h1><p>Préparation du monde 3D amélioré… Une connexion Internet est nécessaire pour charger le moteur graphique.</p><div class="loadbar"><span></span></div><small style="color:#8ca9bb">Terrain · lumière · personnages · commandes tactiles</small></div></div>
+<div id="overlay">
+ <div id="logo" class="panel"><div class="eyebrow">ACTION RPG · DÉMO 3D AMÉLIORÉE</div><b>FRONTIÈRE DES HUNTERS</b><small>Vallée des premiers pas</small></div>
+ <div id="stats" class="panel"><div class="tiny">Énergie vitale</div><div class="bar"><span id="hp"></span></div><div class="tiny">Niveau <b id="level">1</b> · Expérience</div><div class="bar"><span id="xp"></span></div><div class="tiny">Fragments : <b id="frags">0</b></div></div>
+ <div id="quest" class="panel"><b>QUÊTE · PREMIER CONTACT</b><p id="questText">Explore la vallée. Approche-toi d'une créature et utilise ton pouvoir spécial.</p></div>
+ <div id="hero" class="panel"><b id="heroName">Gon</b><small id="heroPower">Renforcement · Jajanken</small></div>
+ <div id="hint" class="panel"><b>COMMANDES</b><br>WASD / flèches · déplacement<br>Souris · caméra · clic/J attaque<br>F pouvoir · Espace esquive · Tab héros</div>
+ <div id="cameraHint">Fais glisser la partie droite de l’écran pour tourner la caméra</div>
+ <div id="toast"></div>
+</div>
+<div id="touch">
+ <div id="joy"><div id="knob"></div></div>
+ <div id="actions"><button class="act" id="attackBtn">ATTAQUE</button><button class="act" id="powerBtn">POUVOIR</button><button class="act" id="dodgeBtn">ESQUIVE</button><button class="act" id="heroBtn">HÉROS</button></div>
+</div>
+<div id="start"><div class="startcard"><div class="eyebrow">UNE AVENTURE SOLO · MONDE 3D</div><h2>Entre dans<br>la frontière.</h2><p>Cette version améliore le terrain, la végétation, la lumière et la profondeur du décor. Elle utilise une vraie scène 3D et une caméra qui suit ton personnage par-dessus son épaule, comme dans un action-RPG moderne. Explore une vallée, combats des créatures et récupère des fragments.</p><div class="picks"><button class="pick active" data-hero="0"><strong>⚡ Gon</strong><small>Puissance et attaque chargée</small></button><button class="pick" data-hero="1"><strong>🌩 Killua</strong><small>Vitesse et foudre</small></button><button class="pick" data-hero="2"><strong>🗡 Sunraku</strong><small>Agilité et précision</small></button></div><button id="go">JOUER EN 3D</button><p class="disclaimer">Prototype fan-made non officiel. Les héros sont représentés par des modèles provisoires simplifiés. Les personnages et univers appartiennent à leurs ayants droit. Une connexion Internet est requise pour charger Three.js depuis un CDN.</p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+<script>
+const loading=document.querySelector('#loading');
+try {
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#a8c9d6');scene.fog=new THREE.FogExp2('#a8c9d6',.0068);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,600);
+scene.add(new THREE.HemisphereLight('#e2f5ff','#334638',2.25));
+const fillLight=new THREE.DirectionalLight('#9ecbff',.75);fillLight.position.set(35,24,-45);scene.add(fillLight);
+const sun=new THREE.DirectionalLight('#fff0d5',3.0);sun.position.set(-45,70,35);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);
+const mat=(color,rough=.85,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+function makeGroundTexture(){
+ const c=document.createElement('canvas');c.width=512;c.height=512;const ctx=c.getContext('2d');
+ ctx.fillStyle='#617e55';ctx.fillRect(0,0,512,512);
+ for(let i=0;i<15000;i++){const x=Math.random()*512,y=Math.random()*512,r=Math.random()*3+.4;ctx.fillStyle=['#78936a','#506e4c','#8a9667','#6c8051','#9b9a70'][Math.floor(Math.random()*5)];ctx.globalAlpha=.10+Math.random()*.2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+ ctx.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(22,22);tex.colorSpace=THREE.SRGBColorSpace;return tex;
+}
+const groundMat=new THREE.MeshStandardMaterial({map:makeGroundTexture(),color:'#c4d0b3',roughness:1}), grassMat=mat('#72956b'), rockMat=mat('#687a7b'), barkMat=mat('#55483b'), leafMat=mat('#2c6954'), leaf2=mat('#468369'), waterMat=new THREE.MeshStandardMaterial({color:'#5da9b7',roughness:.22,metalness:.12,transparent:true,opacity:.88});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500,100,100),groundMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+// Gentle rolling terrain geometry
+const pos=ground.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=pos.getX(i),y=pos.getY(i);pos.setZ(i,Math.sin(x*.055)*.7+Math.cos(y*.048)*.6+Math.sin((x+y)*.025)*1.2)}ground.geometry.computeVertexNormals();
+// distant mountains
+for(let i=0;i<38;i++){const h=18+Math.random()*35,r=12+Math.random()*23;const mountainMat=mat(['#78969a','#849fa0','#6e8b91','#92a9a4'][i%4]);const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7+Math.floor(Math.random()*3),2),mountainMat);m.position.set((Math.random()-.5)*360,h/2-2,-85-Math.random()*155);m.rotation.y=Math.random()*6;m.castShadow=true;scene.add(m);
+ if(i%3===0){const cap=new THREE.Mesh(new THREE.ConeGeometry(r*.38,h*.32,7),mat('#c6d6d2'));cap.position.set(m.position.x,m.position.y+h*.32,m.position.z);cap.rotation.y=m.rotation.y;scene.add(cap)}
+}
+// river ribbon
+const riverPts=[];for(let i=0;i<40;i++){const z=-100+i*5;riverPts.push(new THREE.Vector3(35+Math.sin(i*.3)*13,.05,z))}
+const river=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(riverPts),160,3.5,10,false),waterMat);scene.add(river);
+const riverGlintMat=new THREE.MeshBasicMaterial({color:'#c0f2ef',transparent:true,opacity:.25});
+for(let i=0;i<18;i++){const z=-90+i*9;const glint=new THREE.Mesh(new THREE.TorusGeometry(1.1+Math.random()*1.5,.035,4,16),riverGlintMat);glint.rotation.x=Math.PI/2;glint.position.set(35+Math.sin(i*.54)*13,.17,z);scene.add(glint)}
+// forest: clustered trees with variation
+function tree(x,z,s=1){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.43,4.2,8),barkMat);trunk.position.y=2.05;trunk.castShadow=true;g.add(trunk);
+ for(let b=0;b<4;b++){const branch=new THREE.Mesh(new THREE.CylinderGeometry(.07,.13,1.7,6),barkMat);branch.position.set(Math.sin(b*1.57)*.48,2.3+b*.24,Math.cos(b*1.57)*.48);branch.rotation.z=Math.sin(b*1.57)*.55;branch.rotation.x=Math.cos(b*1.57)*.4;g.add(branch)}
+ for(let i=0;i<4;i++){const cone=new THREE.Mesh(new THREE.ConeGeometry(2.35-i*.34,3.6,8),i%2?leaf2:leafMat);cone.position.set(Math.sin(i*2.2)*.18,3.0+i*1.35,Math.cos(i*2.1)*.18);cone.rotation.y=i*.5;cone.castShadow=true;g.add(cone)}
+ for(let j=0;j<3;j++){const clump=new THREE.Mesh(new THREE.IcosahedronGeometry(.95,1),j%2?leaf2:leafMat);clump.position.set(Math.sin(j*2.1)*1.1,4.2+Math.cos(j)*.55,Math.cos(j*2.1)*.9);clump.scale.set(1.1,.8,1);clump.castShadow=true;g.add(clump)}
+ scene.add(g)}
+for(let i=0;i<220;i++){let x=(Math.random()-.5)*240,z=(Math.random()-.5)*230;if(Math.abs(x)<13&&Math.abs(z)<13)continue;if(Math.abs(x-(35+Math.sin(z*.06)*13))<8)continue;tree(x,z,.65+Math.random()*.85)}
+// rocks and grassy tufts
+for(let i=0;i<135;i++){const r=.45+Math.random()*1.8;const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(r,1),mat(['#657776','#7d8980','#596d6c','#8c9384'][i%4]));rock.position.set((Math.random()-.5)*210,r*.38,(Math.random()-.5)*195);rock.rotation.set(Math.random(),Math.random(),Math.random());rock.scale.set(1+Math.random()*.6,.55+Math.random()*.5,.8+Math.random()*.6);rock.castShadow=true;rock.receiveShadow=true;scene.add(rock);
+ if(i%4===0){const moss=new THREE.Mesh(new THREE.SphereGeometry(r*.72,8,6),mat('#537d53'));moss.scale.y=.18;moss.position.set(rock.position.x,rock.position.y+r*.28,rock.position.z);scene.add(moss)}
+}
+const grassBladeMat=mat('#8ca66c');
+for(let i=0;i<650;i++){const x=(Math.random()-.5)*210,z=(Math.random()-.5)*190;if(Math.abs(x)<7&&Math.abs(z)<65)continue;const tuft=new THREE.Group();tuft.position.set(x,.05,z);for(let j=0;j<3;j++){const blade=new THREE.Mesh(new THREE.ConeGeometry(.09,.55+Math.random()*.5,4),j%2?grassBladeMat:leaf2);blade.position.set((Math.random()-.5)*.35,.25, (Math.random()-.5)*.35);blade.rotation.z=(Math.random()-.5)*.45;tuft.add(blade)}scene.add(tuft)}
+// path
+const pathMat=mat('#9b9274');const path=new THREE.Mesh(new THREE.PlaneGeometry(11,170),pathMat);path.rotation.x=-Math.PI/2;path.position.set(0,.03,-30);path.receiveShadow=true;scene.add(path);
+// Soft distant cloud banks add depth to the horizon.
+const cloudMat=new THREE.MeshStandardMaterial({color:'#edf5f2',roughness:1,transparent:true,opacity:.58});
+for(let i=0;i<22;i++){const cloud=new THREE.Group();cloud.position.set((Math.random()-.5)*340,35+Math.random()*30,-95-Math.random()*170);for(let j=0;j<5;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(4+Math.random()*5,8,6),cloudMat);puff.position.set((j-2)*4,Math.random()*2,Math.random()*4);puff.scale.y=.45;cloud.add(puff)}scene.add(cloud)}
+// floating relic landmark
+const relic=new THREE.Group();relic.position.set(-28,0,-54);scene.add(relic);const plinth=new THREE.Mesh(new THREE.CylinderGeometry(4,5,1.5,8),rockMat);plinth.position.y=.7;plinth.castShadow=true;relic.add(plinth);const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(2.4),new THREE.MeshStandardMaterial({color:'#67e9f0',emissive:'#1b8196',emissiveIntensity:1.4,roughness:.22,metalness:.2}));crystal.position.y=5;relic.add(crystal);
+// characters are detailed placeholder meshes, third-person view
+const heroes=[
+{name:'Gon',power:'Renforcement · Jajanken',color:'#27a86b',hair:'#182f27',accent:'#ffd65d',speed:7.2,damage:28},
+{name:'Killua',power:'Transmutation · Éclair',color:'#d7e4ed',hair:'#dbe8f4',accent:'#67e8ff',speed:9.3,damage:23},
+{name:'Sunraku',power:'Escrime · Frappe précise',color:'#d5b86b',hair:'#e4d8ac',accent:'#ff9265',speed:8.1,damage:25}];
+let heroIndex=0,player,enemies=[],fragments=0,xp=0,level=1,started=false,keys={},joy={x:0,y:0},cameraYaw=0,cameraPitch=.16,attackCd=0,powerCd=0,dodge=0,invuln=0,toastT=0,questDone=false;
+function makeHero(index){const h=heroes[index],g=new THREE.Group();const skin=mat('#edc4a0'),cloth=mat(h.color),hair=mat(h.hair),dark=mat('#263849'),boots=mat('#26313b'),accent=mat(h.accent,.4,.1);
+function mesh(geo,m,x,y,z,sx=1,sy=1,sz=1){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;g.add(o);return o}
+mesh(new THREE.CapsuleGeometry(.43,.78,5,8),cloth,0,1.65,0,1,.92,.72);
+mesh(new THREE.SphereGeometry(.34,16,12),skin,0,2.48,0,1,.98,.9);
+mesh(new THREE.SphereGeometry(.36,9,7),hair,0,2.72,-.02,1.12,.78,1.03);
+for(let i=0;i<5;i++){const spike=mesh(new THREE.ConeGeometry(.13,.42,5),hair,(i-2)*.14,2.95,Math.sin(i)*.1);spike.rotation.z=(i-2)*-.18}
+mesh(new THREE.BoxGeometry(.16,.08,.08),dark,-.12,2.48,.3);mesh(new THREE.BoxGeometry(.16,.08,.08),dark,.12,2.48,.3);
+const armL=mesh(new THREE.CapsuleGeometry(.13,.52,4,7),cloth,-.54,1.75,0);armL.rotation.z=-.25;
+const armR=mesh(new THREE.CapsuleGeometry(.13,.52,4,7),cloth,.54,1.75,0);armR.rotation.z=.25;
+const legL=mesh(new THREE.CapsuleGeometry(.16,.52,4,7),dark,-.24,.62,0);const legR=mesh(new THREE.CapsuleGeometry(.16,.52,4,7),dark,.24,.62,0);
+mesh(new THREE.BoxGeometry(.3,.18,.52),boots,-.24,.22,.08);mesh(new THREE.BoxGeometry(.3,.18,.52),boots,.24,.22,.08);
+const aura=new THREE.Mesh(new THREE.SphereGeometry(1.05,20,16),new THREE.MeshBasicMaterial({color:h.accent,transparent:true,opacity:0,wireframe:true,depthWrite:false}));aura.position.y=1.5;g.add(aura);
+g.userData={armL,armR,legL,legR,aura};return g}
+player=makeHero(0);player.position.set(0,0,8);scene.add(player);
+function makeEnemy(x,z){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.DodecahedronGeometry(1.05,1),mat('#4c375e'));body.position.y=1.15;body.castShadow=true;g.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.55,12,10),mat('#76548b'));head.position.set(0,2.05,0);head.castShadow=true;g.add(head);const hornmat=mat('#b99dc9');for(const s of [-1,1]){const horn=new THREE.Mesh(new THREE.ConeGeometry(.22,.75,6),hornmat);horn.position.set(s*.34,2.65,0);horn.rotation.z=s*-.3;g.add(horn);const eye=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),mat('#ff536c',.3));eye.position.set(s*.2,2.1,.49);g.add(eye)}const shadow=new THREE.Mesh(new THREE.CircleGeometry(1.25,16),new THREE.MeshBasicMaterial({color:'#15212a',transparent:true,opacity:.35}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.04;g.add(shadow);g.position.set(x,0,z);scene.add(g);return {mesh:g,hp:60,max:60,alive:true,hit:0,phase:Math.random()*6}}
+for(let i=0;i<15;i++){let x=(Math.random()-.5)*95,z=-10-Math.random()*95;if(Math.abs(x)<10&&z>-25)z-=20;enemies.push(makeEnemy(x,z))}
+function say(s){const el=document.querySelector('#toast');el.textContent=s;el.style.opacity=1;toastT=2}
+function updateHero(){scene.remove(player);player=makeHero(heroIndex);player.position.set(0,0,8);scene.add(player);document.querySelector('#heroName').textContent=heroes[heroIndex].name;document.querySelector('#heroPower').textContent=heroes[heroIndex].power;document.querySelectorAll('.pick').forEach((p,i)=>p.classList.toggle('active',i===heroIndex));say('Héros sélectionné : '+heroes[heroIndex].name)}
+document.querySelectorAll('.pick').forEach(p=>p.onclick=()=>{heroIndex=+p.dataset.hero;document.querySelectorAll('.pick').forEach((q,i)=>q.classList.toggle('active',i===heroIndex))});
+function attack(power=false){if(!started)return;if(power&&powerCd>0)return;if(!power&&attackCd>0)return;const h=heroes[heroIndex];if(power)powerCd=1.3;else attackCd=.38;player.userData.aura.material.opacity=power?.6:.18;player.userData.aura.scale.setScalar(power?1.7:1.1);setTimeout(()=>{if(player?.userData?.aura)player.userData.aura.material.opacity=0},220);let count=0;for(const e of enemies){if(!e.alive)continue;const dx=e.mesh.position.x-player.position.x,dz=e.mesh.position.z-player.position.z,dist=Math.hypot(dx,dz);const forward=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));const dot=(dx*forward.x+dz*forward.z)/(dist||1);if(dist<(power?10:3.3)&&(power||dot>.05)){e.hp-=(power?h.damage*1.8:h.damage);e.hit=.2;count++;e.mesh.scale.setScalar(1.08);setTimeout(()=>{if(e.mesh)e.mesh.scale.setScalar(1)},120);if(e.hp<=0){e.alive=false;scene.remove(e.mesh);fragments++;xp+=30;if(xp>=level*100){xp-=level*100;level++;say('Niveau '+level+' atteint !')} }}}
+if(power){say(h.index===1?'Éclair !':h.name==='Gon'?'Jajanken !':h.name==='Sunraku'?'Entaille spéciale !':'Pouvoir spécial !')}else if(count)say('Impact !');if(fragments>=3&&!questDone){questDone=true;document.querySelector('#questText').textContent='Quête accomplie ! Continue à explorer la vallée et à chercher des créatures.';say('Quête accomplie : Premier contact !')}}
+function dodgeNow(){if(!started)return;dodge=.32;invuln=.48;player.position.add(new THREE.Vector3(Math.sin(player.rotation.y)*-2.5,0,Math.cos(player.rotation.y)*-2.5));say('Esquive !')}
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();if(e.repeat)return;if(e.key.toLowerCase()==='j')attack(false);if(e.key.toLowerCase()==='f')attack(true);if(e.key===' ')dodgeNow();if(e.key==='Tab'){heroIndex=(heroIndex+1)%heroes.length;updateHero()}});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+document.querySelector('#attackBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack(false)});document.querySelector('#powerBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack(true)});document.querySelector('#dodgeBtn').addEventListener('pointerdown',e=>{e.preventDefault();dodgeNow()});document.querySelector('#heroBtn').addEventListener('pointerdown',e=>{e.preventDefault();heroIndex=(heroIndex+1)%heroes.length;updateHero()});
+// virtual joystick
+const joyEl=document.querySelector('#joy'),knob=document.querySelector('#knob');let joyId=null;
+function joyMove(e){const r=joyEl.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),len=Math.hypot(dx,dy),max=42,scale=len>max?max/len:1;joy.x=dx*scale/max;joy.y=dy*scale/max;knob.style.transform=`translate(${dx*scale}px,${dy*scale}px)`}
+joyEl.addEventListener('pointerdown',e=>{e.preventDefault();joyId=e.pointerId;joyEl.setPointerCapture(e.pointerId);joyMove(e)});joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e)});function joyEnd(e){if(e.pointerId!==joyId)return;joyId=null;joy.x=joy.y=0;knob.style.transform='translate(0,0)'}joyEl.addEventListener('pointerup',joyEnd);joyEl.addEventListener('pointercancel',joyEnd);
+// drag right side to orbit camera
+let drag=null;renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX>innerWidth*.43){drag={id:e.pointerId,x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)}});renderer.domElement.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;cameraYaw-=(e.clientX-drag.x)*.006;cameraPitch=Math.max(-.08,Math.min(.65,cameraPitch+(e.clientY-drag.y)*.003));drag.x=e.clientX;drag.y=e.clientY});renderer.domElement.addEventListener('pointerup',()=>drag=null);renderer.domElement.addEventListener('pointercancel',()=>drag=null);
+function startGame(){updateHero();started=true;document.querySelector('#start').style.display='none';loading.style.display='none';say('Explore la vallée. La caméra suit ton héros.')}document.querySelector('#go').onclick=startGame;
+const clock=new THREE.Clock();let hp=100,maxHp=100,camTarget=new THREE.Vector3();
+function tick(){requestAnimationFrame(tick);const dt=Math.min(clock.getDelta(),.04);if(started){const h=heroes[heroIndex];let ix=0,iz=0;if(keys.w||keys.z||keys.arrowup)iz-=1;if(keys.s||keys.arrowdown)iz+=1;if(keys.a||keys.q||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;ix+=joy.x;iz+=joy.y;let move=new THREE.Vector3(ix,0,iz);if(move.length()>1)move.normalize();if(move.length()>.08){const angle=Math.atan2(move.x,move.z)+cameraYaw;const dir=new THREE.Vector3(Math.sin(angle),0,Math.cos(angle));player.position.addScaledVector(dir,h.speed*dt*(keys.shift?1.4:1));player.rotation.y=Math.atan2(dir.x,dir.z);player.userData.legL.rotation.x=Math.sin(performance.now()*.012)*.65;player.userData.legR.rotation.x=-player.userData.legL.rotation.x;player.userData.armL.rotation.x=-player.userData.legL.rotation.x*.4;player.userData.armR.rotation.x=-player.userData.legR.rotation.x*.4}else{player.userData.legL.rotation.x*=.7;player.userData.legR.rotation.x*=.7}
+player.position.x=THREE.MathUtils.clamp(player.position.x,-115,115);player.position.z=THREE.MathUtils.clamp(player.position.z,-115,115);attackCd=Math.max(0,attackCd-dt);powerCd=Math.max(0,powerCd-dt);invuln=Math.max(0,invuln-dt);player.userData.aura.rotation.y+=dt*2;
+for(const e of enemies){if(!e.alive)continue;e.phase+=dt;const dx=player.position.x-e.mesh.position.x,dz=player.position.z-e.mesh.position.z,dist=Math.hypot(dx,dz);if(dist<18&&dist>2.1){e.mesh.position.x+=dx/dist*2.4*dt;e.mesh.position.z+=dz/dist*2.4*dt;e.mesh.rotation.y=Math.atan2(dx,dz)}if(dist<2.2&&invuln<=0){hp-=10*dt;player.material&& (player.material.opacity=.8)}}
+hp=Math.max(0,hp);document.querySelector('#hp').style.width=hp+'%';document.querySelector('#xp').style.width=(xp/(level*100)*100)+'%';document.querySelector('#level').textContent=level;document.querySelector('#frags').textContent=fragments;
+if(hp<=0){hp=100;player.position.set(0,0,8);say('Tu reprends ton souffle au point de départ.')}
+if(toastT>0){toastT-=dt;if(toastT<=0)document.querySelector('#toast').style.opacity=0}
+// over-the-shoulder camera orbit
+const target=new THREE.Vector3(player.position.x,player.position.y+2.0,player.position.z);const dist=8.5;const cp=Math.cos(cameraPitch),sp=Math.sin(cameraPitch);const offset=new THREE.Vector3(Math.sin(cameraYaw)*dist*cp,2.2+sp*dist,Math.cos(cameraYaw)*dist*cp);camTarget.copy(target).add(offset);camera.position.lerp(camTarget,1-Math.exp(-6*dt));camera.lookAt(target.x,target.y+.1,target.z);
+// crystal floats and glows
+crystal.position.y=5+Math.sin(performance.now()*.0015)*.35;crystal.rotation.y+=dt*.55;relic.rotation.y+=dt*.08;
+}
+renderer.render(scene,camera)}
+tick();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7))});
+loading.style.display='none';
+} catch(err){loading.innerHTML='<div class="loadcard"><h1>Impossible de lancer la 3D</h1><p>Le navigateur n’a pas pu charger le moteur graphique. Vérifie la connexion Internet et essaie avec Chrome ou Safari à jour.</p><p style="font-size:10px;color:#8fa8b8">'+String(err).replace(/[<>&]/g,'')+'</p></div>';console.error(err)}
+</script>
+
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+
+</body>
+</html>
